@@ -11,6 +11,8 @@ internal struct StringValue : IValue
 
     public bool AsBool() => bool.Parse(value);
 
+    public List<IValue> AsList() => throw new Exception("cannot convert string to list.");
+
     public float AsNumber() => float.Parse(value);
 
     public string AsString() => value;

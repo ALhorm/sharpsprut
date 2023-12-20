@@ -11,6 +11,8 @@ internal struct BoolValue : IValue
 
     public bool AsBool() => value;
 
+    public List<IValue> AsList() => throw new Exception("cannot convert bool to list.");
+
     public float AsNumber() => value ? 1f : 0f;
 
     public string AsString() => value.ToString();

@@ -5,6 +5,7 @@ internal interface IValue
     float AsNumber();
     string AsString();
     bool AsBool();
+    List<IValue> AsList();
 
     public static IValue operator +(IValue val1, IValue val2)
     {

@@ -13,7 +13,7 @@ internal struct VariableExpression : IExpression
 
     public IValue Eval()
     {
-        if (Variables.IsExists(name)) return Variables.Get(name);
+        if (Variables.IsExists(name)) return Variables.Get(name).Value;
         throw new Exception($"variable \"{name}\" doesn't exist.");
     }
 }

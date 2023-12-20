@@ -1,5 +1,4 @@
 ﻿using Sprut.Ast;
-using System.Data;
 
 namespace Sprut;
 
@@ -23,18 +22,21 @@ internal class Parser
         if (Match(TokenType.IF)) return If();
         if (Match(TokenType.WHILE)) return While();
         if (Match(TokenType.LOG)) return new LogStatement(Expression());
+        if (Match(TokenType.FOR)) return For();
+        if (Match(TokenType.FUN)) return Function(false);
+        if (Match(TokenType.RETURN)) return new ReturnStatement(Expression());
+        if (LookMatch(TokenType.WORD, 0) && LookMatch(TokenType.OPEN_RND_BKT, 1))
+            return new FunctionCallStatement(FunctionCall());
 
         return Variable();
     }
 
     private IStatement Variable()
     {
-        if (LookMatch(TokenType.ASSIGN, 1))
-        {
-            var name = Consume(TokenType.WORD).Value;
-            Consume(TokenType.ASSIGN);
-            return new VariableStatement(name, Expression());
-        }
+        var name = Consume(TokenType.WORD).Value;
+        var operation = Get(0);
+        Consume(operation.Type);
+        return new VariableStatement(name, operation.Value, Expression());
 
         throw new Exception("unknown statement.");
     }
@@ -75,6 +77,88 @@ internal class Parser
     {
         var expression = Expression();
         return new WhileStatement(expression, BlockOrStatement());
+    }
+
+    private IStatement For()
+    {
+        var init = Statement();
+        Consume(TokenType.COMMA);
+        var condition = Expression();
+        Consume(TokenType.COMMA);
+        var action = Statement();
+
+        return new ForStatement(init, condition, action, BlockOrStatement());
+    }
+
+    private IStatement Function(bool isConst)
+    {
+        var args = new Dictionary<string, IExpression?>();
+        var name = Consume(TokenType.WORD).Value;
+
+        Consume(TokenType.OPEN_RND_BKT);
+
+        while (!Match(TokenType.CLOSE_RND_BKT))
+        {
+            var arg_name = Consume(TokenType.WORD).Value;
+            IExpression? arg_value = null;
+
+            if (Match(TokenType.ASSIGN)) arg_value = Expression();
+            args.Add(arg_name, arg_value);
+
+            Match(TokenType.COMMA);
+        }
+
+        return new FunctionStatement(name, args, BlockOrStatement(), isConst);
+    }
+
+    private FunctionCallExpression FunctionCall()
+    {
+        var name = Consume(TokenType.WORD).Value;
+        var args = new Dictionary<Dictionary<int, string?>, IExpression>();
+
+        Consume(TokenType.OPEN_RND_BKT);
+        for (int i = 0; !Match(TokenType.CLOSE_RND_BKT); i++)
+        {
+            string? argName = null;
+
+            if (LookMatch(TokenType.ASSIGN, 1))
+            {
+                argName = Consume(TokenType.WORD).Value;
+                Consume(TokenType.ASSIGN);
+            }
+
+            var argKey = new Dictionary<int, string?>() { [i] = argName };
+            args[argKey] = Expression();
+            Match(TokenType.COMMA);
+        }
+
+        return new FunctionCallExpression(name, args);
+    }
+
+    private IExpression ListAccessExpression(IExpression expression)
+    {
+        var indices = new List<IExpression>();
+
+        while (Match(TokenType.OPEN_SQR_BKT))
+        {
+            indices.Add(Expression());
+            Consume(TokenType.CLOSE_SQR_BKT);
+        }
+
+        return new ListAccessExpression(expression, indices);
+    }
+
+    private IExpression ListExpression()
+    {
+        var result = new List<IExpression>();
+
+        while (!Match(TokenType.CLOSE_SQR_BKT))
+        {
+            result.Add(Expression());
+            Match(TokenType.COMMA);
+        }
+
+        return new ListExpression(result);
     }
 
     private IExpression Expression() => Logical();
@@ -152,9 +236,17 @@ internal class Parser
 
     private IExpression Unary()
     {
-        if (Match(TokenType.PLUS)) return new UnaryExpression(Primary(), '+');
-        if (Match(TokenType.MINUS)) return new UnaryExpression(Primary(), '-');
-        return Primary();
+        if (Match(TokenType.PLUS)) return new UnaryExpression(ListAccess(), '+');
+        if (Match(TokenType.MINUS)) return new UnaryExpression(ListAccess(), '-');
+        return ListAccess();
+    }
+
+    private IExpression ListAccess()
+    {
+        var result = Primary();
+        if (!LookMatch(TokenType.ASSIGN, -1) && LookMatch(TokenType.OPEN_SQR_BKT, 0)) return ListAccessExpression(result);
+
+        return result;
     }
 
     private IExpression Primary()
@@ -162,6 +254,7 @@ internal class Parser
         var current = Get(0);
 
         if (Match(TokenType.NUMBER)) return new ValueExpression(float.Parse(current.Value, System.Globalization.CultureInfo.InvariantCulture));
+        if (LookMatch(TokenType.WORD, 0) && LookMatch(TokenType.OPEN_RND_BKT, 1)) return FunctionCall();
         if (Match(TokenType.OPEN_RND_BKT))
         {
             var result = Expression();
@@ -172,7 +265,9 @@ internal class Parser
         if (Match(TokenType.TEXT)) return new ValueExpression(current.Value);
         if (Match(TokenType.TRUE)) return new ValueExpression(true);
         if (Match(TokenType.FALSE)) return new ValueExpression(false);
+        if (Match(TokenType.OPEN_SQR_BKT)) return ListExpression();
 
+        Console.WriteLine(current);
         throw new Exception("unknown expression.");
     }
 
@@ -196,7 +291,7 @@ internal class Parser
     private Token Consume(TokenType type)
     {
         var current = Get(0);
-        if (current.Type != type) throw new Exception("unexpected token.");
+        if (current.Type != type) throw new Exception($"unexpected token '{current.Value}'.");
         pos++;
         return current;
     }

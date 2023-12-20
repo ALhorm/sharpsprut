@@ -15,15 +15,22 @@ internal class Lexer
         [")"] = TokenType.CLOSE_RND_BKT,
         ["{"] = TokenType.OPEN_CRL_BKT,
         ["}"] = TokenType.CLOSE_CRL_BKT,
+        ["["] = TokenType.OPEN_SQR_BKT,
+        ["]"] = TokenType.CLOSE_SQR_BKT,
         ["="] = TokenType.ASSIGN,
         ["^"] = TokenType.POWER,
         [">"] = TokenType.GREATER,
         ["<"] = TokenType.LESS,
+        [","] = TokenType.COMMA,
         ["=="] = TokenType.EQUAL,
         [">="] = TokenType.GREATER_EQUAL,
-        ["<="] = TokenType.LESS_EQUAL
+        ["<="] = TokenType.LESS_EQUAL,
+        ["+="] = TokenType.PLUS_ASSIGN,
+        ["-="] = TokenType.MINUS_ASSIGN,
+        ["*="] = TokenType.STAR_ASSIGN,
+        ["/="] = TokenType.SLASH_ASSIGN
     };
-    private string chars = "+-*/(){}=<>^";
+    private string chars = "+-*/(){}[]=<>^,";
 
     public Lexer(string code) => this.code = code;
 
@@ -97,6 +104,10 @@ internal class Lexer
             case "elif": AddToken(TokenType.ELIF, result); break;
             case "while": AddToken(TokenType.WHILE, result); break;
             case "log": AddToken(TokenType.LOG, result); break;
+            case "for": AddToken(TokenType.FOR, result); break;
+            case "void": AddToken(TokenType.VOID, result); break;
+            case "fun": AddToken(TokenType.FUN, result); break;
+            case "return": AddToken(TokenType.RETURN, result); break;
             default: AddToken(TokenType.WORD, result); break;
         }
     }

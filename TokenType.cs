@@ -13,6 +13,10 @@ internal enum TokenType
     ELIF,
     WHILE,
     LOG,
+    FOR,
+    VOID,
+    FUN,
+    RETURN,
 
     PLUS,
     MINUS,
@@ -20,6 +24,10 @@ internal enum TokenType
     SLASH,
     ASSIGN,
     POWER,
+    PLUS_ASSIGN,
+    MINUS_ASSIGN,
+    STAR_ASSIGN,
+    SLASH_ASSIGN,
 
     GREATER,
     LESS,
@@ -31,6 +39,9 @@ internal enum TokenType
     CLOSE_RND_BKT,
     OPEN_CRL_BKT,
     CLOSE_CRL_BKT,
+    OPEN_SQR_BKT,
+    CLOSE_SQR_BKT,
+    COMMA,
 
     EOF
 }

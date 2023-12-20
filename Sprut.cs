@@ -10,6 +10,5 @@ internal class Program
         var statements = new Parser(tokens).Parse();
 
         foreach (var statement in statements) statement.Exec();
-        foreach (var arg in args) Console.WriteLine(arg);
     }
 }
