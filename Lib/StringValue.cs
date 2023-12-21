@@ -15,7 +15,11 @@ internal struct StringValue : IValue
 
     public float AsNumber() => float.Parse(value);
 
+    public Structure AsStruct() => throw new Exception("cannot convert string to structure.");
+
     public string AsString() => value;
 
     public override string? ToString() => value;
+
+    public string TypeName() => "string";
 }

@@ -8,12 +8,14 @@ internal struct Functions
     {
         ["parseNumber"] = new ParseFunction("number"),
         ["parseString"] = new ParseFunction("string"),
-        ["parseBool"] = new ParseFunction("bool")
+        ["parseBool"] = new ParseFunction("bool"),
+        ["exit"] = new ExitFunction(),
+        ["typeof"] = new TypeOfFunction()
     };
 
     public static Function Get(string name) => functions[name];
 
     public static bool IsExists(string name) => functions.ContainsKey(name);
 
-    public static void Set(string name, Function value) => functions[name] = value;
+    public static void Set(string name, Function function) => functions[name] = function;
 }

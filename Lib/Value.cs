@@ -6,6 +6,8 @@ internal interface IValue
     string AsString();
     bool AsBool();
     List<IValue> AsList();
+    Structure AsStruct();
+    string TypeName();
 
     public static IValue operator +(IValue val1, IValue val2)
     {

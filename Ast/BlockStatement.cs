@@ -2,7 +2,7 @@
 
 internal struct BlockStatement : IStatement
 {
-    private List<IStatement> statements;
+    public List<IStatement> statements { get; init; }
 
     public BlockStatement(List<IStatement> statements)
     {

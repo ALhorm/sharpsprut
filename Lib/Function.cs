@@ -5,20 +5,23 @@ namespace Sprut.Lib;
 internal class Function
 {
     public Dictionary<string, IValue> Args = new Dictionary<string, IValue>();
-    public bool isConst { get; init; }
+    public bool IsConst { get; init; }
+    public bool IsPublic { get; init; } = false;
     private IStatement? statement;
 
     public Function() { }
 
-    public Function(IStatement statement, bool isConst)
+    public Function(IStatement? statement, bool isConst, bool isPublic)
     {
-        this.isConst = isConst;
+        IsConst = isConst;
+        IsPublic = isPublic;
         this.statement = statement;
     }
 
     public virtual IValue Exec()
     {
         Variables.Set(Args);
+        IValue result = new VoidValue();
         
         try
         {
@@ -26,11 +29,10 @@ internal class Function
         }
         catch (ReturnException re)
         {
-            Variables.Pop(Args);
-            return re.expression.Eval();
+            result = re.expression.Eval();
         }
 
         Variables.Pop(Args);
-        return new VoidValue();
+        return result;
     }
 }

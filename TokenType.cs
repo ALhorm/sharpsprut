@@ -17,6 +17,11 @@ internal enum TokenType
     VOID,
     FUN,
     RETURN,
+    CONST,
+    STRUCT,
+    NEW,
+    THIS,
+    PUBLIC,
 
     PLUS,
     MINUS,
@@ -42,6 +47,7 @@ internal enum TokenType
     OPEN_SQR_BKT,
     CLOSE_SQR_BKT,
     COMMA,
+    DOT,
 
     EOF
 }

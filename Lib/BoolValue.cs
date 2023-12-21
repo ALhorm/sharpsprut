@@ -17,5 +17,9 @@ internal struct BoolValue : IValue
 
     public string AsString() => value.ToString();
 
+    public Structure AsStruct() => throw new Exception("cannot convert bool to structure.");
+
     public override string? ToString() => value.ToString().ToLower();
+
+    public string TypeName() => "bool";
 }

@@ -9,7 +9,7 @@ internal class ParseFunction : Function
     public ParseFunction(string type)
     {
         this.type = type;
-        isConst = true;
+        IsConst = true;
         Args = new Dictionary<string, IValue>()
         {
             ["x"] = new VoidValue()

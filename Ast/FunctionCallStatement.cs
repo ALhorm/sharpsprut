@@ -1,4 +1,6 @@
-﻿namespace Sprut.Ast;
+﻿using Sprut.Lib;
+
+namespace Sprut.Ast;
 
 internal struct FunctionCallStatement : IStatement
 {
@@ -11,7 +13,7 @@ internal struct FunctionCallStatement : IStatement
 
     public void Exec()
     {
-        var function = expression.GetFunction();
+        var function = expression.SetFunctionArgs(Functions.Get(expression.name));
         function.Exec();
     }
 }

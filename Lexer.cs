@@ -22,6 +22,7 @@ internal class Lexer
         [">"] = TokenType.GREATER,
         ["<"] = TokenType.LESS,
         [","] = TokenType.COMMA,
+        ["."] = TokenType.DOT,
         ["=="] = TokenType.EQUAL,
         [">="] = TokenType.GREATER_EQUAL,
         ["<="] = TokenType.LESS_EQUAL,
@@ -30,7 +31,7 @@ internal class Lexer
         ["*="] = TokenType.STAR_ASSIGN,
         ["/="] = TokenType.SLASH_ASSIGN
     };
-    private string chars = "+-*/(){}[]=<>^,";
+    private string chars = "+-*/(){}[]=<>^,.";
 
     public Lexer(string code) => this.code = code;
 
@@ -42,7 +43,7 @@ internal class Lexer
 
             if (char.IsDigit(current)) TokenizeNumber();
             else if (chars.Contains(current)) TokenizeOperator();
-            else if (char.IsLetter(current)) TokenizeWord();
+            else if (char.IsLetter(current) || current == '_' || current == '$') TokenizeWord();
             else if (current == '"') TokenizeText();
             else Next();
         }
@@ -108,6 +109,11 @@ internal class Lexer
             case "void": AddToken(TokenType.VOID, result); break;
             case "fun": AddToken(TokenType.FUN, result); break;
             case "return": AddToken(TokenType.RETURN, result); break;
+            case "const": AddToken(TokenType.CONST, result); break;
+            case "struct": AddToken(TokenType.STRUCT, result); break;
+            case "new": AddToken(TokenType.NEW, result); break;
+            case "this": AddToken(TokenType.THIS, result); break;
+            case "public": AddToken(TokenType.PUBLIC, result); break;
             default: AddToken(TokenType.WORD, result); break;
         }
     }

@@ -15,5 +15,9 @@ internal struct ListValue : IValue
 
     public float AsNumber() => throw new Exception("cannot convert list to number.");
 
+    public Structure AsStruct() => throw new Exception("cannot convert list to structure.");
+
     public string AsString() => $"[{string.Join(", ", value)}]";
+
+    public string TypeName() => "list";
 }

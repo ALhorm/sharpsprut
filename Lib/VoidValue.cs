@@ -8,5 +8,9 @@ internal struct VoidValue : IValue
 
     public float AsNumber() => 0f;
 
+    public Structure AsStruct() => throw new Exception("cannot convert void to structure.");
+
     public string AsString() => "void";
+
+    public string TypeName() => "void";
 }

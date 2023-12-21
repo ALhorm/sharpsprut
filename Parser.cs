@@ -7,6 +7,10 @@ internal class Parser
     private List<Token> tokens;
     private int pos = 0;
     private Token EOF = new Token(TokenType.EOF, "\0");
+    public static string? structure = null;
+    private string? instance = null;
+    private bool isPublic = false;
+    public List<IStatement> publicStatements { get; private set; } = new List<IStatement>();
 
     public Parser(List<Token> tokens) => this.tokens = tokens;
 
@@ -19,29 +23,48 @@ internal class Parser
 
     private IStatement Statement()
     {
+        if (LookMatch(TokenType.DOT, 1)) return new DotStatement((DotExpression)Dot());
         if (Match(TokenType.IF)) return If();
         if (Match(TokenType.WHILE)) return While();
         if (Match(TokenType.LOG)) return new LogStatement(Expression());
         if (Match(TokenType.FOR)) return For();
+        if (Match(TokenType.PUBLIC)) return Public();
+        if (Match(TokenType.CONST))
+        {
+            if (Match(TokenType.FUN)) return Function(true);
+            if (Match(TokenType.STRUCT)) return Structure(true);
+            return Variable(true);
+        }
         if (Match(TokenType.FUN)) return Function(false);
         if (Match(TokenType.RETURN)) return new ReturnStatement(Expression());
+        if (Match(TokenType.STRUCT)) return Structure(false);
         if (LookMatch(TokenType.WORD, 0) && LookMatch(TokenType.OPEN_RND_BKT, 1))
             return new FunctionCallStatement(FunctionCall());
 
-        return Variable();
+        return Variable(false);
     }
 
-    private IStatement Variable()
+    private IStatement Variable(bool isConst)
     {
+        var isStruct = false;
+        if (Match(TokenType.THIS))
+        {
+            Consume(TokenType.DOT);
+            isStruct = true;
+        }
+
         var name = Consume(TokenType.WORD).Value;
         var operation = Get(0);
         Consume(operation.Type);
-        return new VariableStatement(name, operation.Value, Expression());
+
+        if (LookMatch(TokenType.NEW, 0)) instance = name;
+
+        return new VariableStatement(name, operation.Value, structure, isConst, isStruct, Expression());
 
         throw new Exception("unknown statement.");
     }
 
-    private IStatement Block()
+    private BlockStatement Block()
     {
         var statements = new List<IStatement>();
 
@@ -108,7 +131,31 @@ internal class Parser
             Match(TokenType.COMMA);
         }
 
-        return new FunctionStatement(name, args, BlockOrStatement(), isConst);
+        return new FunctionStatement(name, args, isConst, isPublic, BlockOrStatement());
+    }
+
+    private IStatement Structure(bool isConst)
+    {
+        var name = Consume(TokenType.WORD).Value;
+        structure = name;
+        return new StructStatement(name, isConst, Block());
+    }
+
+    private IStatement Public()
+    {
+        isPublic = true;
+        var result = Statement();
+        publicStatements.Add(result);
+        isPublic = false;
+
+        return result;
+    }
+
+    private IExpression This()
+    {
+        Consume(TokenType.DOT);
+        var name = Consume(TokenType.WORD).Value;
+        return new ThisExpression(name);
     }
 
     private FunctionCallExpression FunctionCall()
@@ -236,9 +283,23 @@ internal class Parser
 
     private IExpression Unary()
     {
-        if (Match(TokenType.PLUS)) return new UnaryExpression(ListAccess(), '+');
-        if (Match(TokenType.MINUS)) return new UnaryExpression(ListAccess(), '-');
-        return ListAccess();
+        if (Match(TokenType.PLUS)) return new UnaryExpression(Dot(), '+');
+        if (Match(TokenType.MINUS)) return new UnaryExpression(Dot(), '-');
+        return Dot();
+    }
+
+    private IExpression Dot()
+    {
+        var result = ListAccess();
+
+        if (LookMatch(TokenType.DOT, 0) && !LookMatch(TokenType.THIS, -1))
+        {
+            var expression = result;
+            Consume(TokenType.DOT);
+            if (LookMatch(TokenType.OPEN_RND_BKT, 1)) return new DotExpression(expression, FunctionCall(), null);
+        }
+
+        return result;
     }
 
     private IExpression ListAccess()
@@ -254,6 +315,7 @@ internal class Parser
         var current = Get(0);
 
         if (Match(TokenType.NUMBER)) return new ValueExpression(float.Parse(current.Value, System.Globalization.CultureInfo.InvariantCulture));
+        if (Match(TokenType.NEW)) return new NewExpression(FunctionCall(), instance);
         if (LookMatch(TokenType.WORD, 0) && LookMatch(TokenType.OPEN_RND_BKT, 1)) return FunctionCall();
         if (Match(TokenType.OPEN_RND_BKT))
         {
@@ -266,8 +328,9 @@ internal class Parser
         if (Match(TokenType.TRUE)) return new ValueExpression(true);
         if (Match(TokenType.FALSE)) return new ValueExpression(false);
         if (Match(TokenType.OPEN_SQR_BKT)) return ListExpression();
+        if (Match(TokenType.VOID)) return new ValueExpression('v');
+        if (Match(TokenType.THIS)) return This();
 
-        Console.WriteLine(current);
         throw new Exception("unknown expression.");
     }
 

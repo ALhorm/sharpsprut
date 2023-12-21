@@ -4,7 +4,7 @@ namespace Sprut.Ast;
 
 internal struct FunctionCallExpression : IExpression
 {
-    private string name;
+    public string name { get; init; }
     private Dictionary<Dictionary<int, string?>, IExpression> args;
 
     public FunctionCallExpression(string name, Dictionary<Dictionary<int, string?>, IExpression> args)
@@ -13,10 +13,8 @@ internal struct FunctionCallExpression : IExpression
         this.args = args;
     }
 
-    public Function GetFunction()
+    public Function SetFunctionArgs(Function function)
     {
-        var function = Functions.Get(name);
-
         foreach (var arg in args)
         {
             var value = arg.Value.Eval();
@@ -33,7 +31,7 @@ internal struct FunctionCallExpression : IExpression
 
     public IValue Eval()
     {
-        var function = GetFunction();
+        var function = SetFunctionArgs(Functions.Get(name));
         return function.Exec();
     }
 }
